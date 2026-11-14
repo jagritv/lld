@@ -1,9 +1,9 @@
 // ==========================================
-// 1. ENUMS & VALUE INTERFACES
+// 1. ENUMS & IMMUTABLE VALUE OBJECTS
 // ==========================================
 enum VehicleType {
-  CAR = 'CAR',
   BIKE = 'BIKE',
+  CAR = 'CAR',
   TRUCK = 'TRUCK',
 }
 
@@ -16,69 +16,103 @@ enum SpotType {
 interface Ticket {
   readonly id: string;
   readonly spotId: string;
-  readonly floorNumber: number,
+  readonly floorNumber: number;
   readonly vehicleType: VehicleType;
   readonly entryTime: Date;
 }
 
 interface Receipt {
-  readonly ticketId: string,
-  readonly fee: number, 
-  readonly durationHours: number,
+  readonly ticketId: string;
+  readonly fee: number;
+  readonly durationHours: number;
 }
 
 // ==========================================
-// 2. STRATEGY INTERFACE & IMPLEMENTATION
+// 2. DOMAIN ENTITIES: SPOT & FLOOR
 // ==========================================
+class ParkingSpot {
+  private currentVehicle: VehicleType | null = null;
+
+  constructor(
+    public readonly id: string,
+    public readonly floorNumber: number,
+    public readonly spotType: SpotType
+  ) {}
+
+  public isAvailable(): boolean {
+    return this.currentVehicle === null;
+  }
+
+  public canFit(vehicle: VehicleType): boolean {
+    if (!this.isAvailable()) return false;
+    if (vehicle === VehicleType.BIKE) return true;
+    if (vehicle === VehicleType.CAR) return this.spotType !== SpotType.SMALL;
+    return this.spotType === SpotType.LARGE;
+  }
+
+  public assign(vehicle: VehicleType): void {
+    if (!this.canFit(vehicle)) {
+      throw new Error(`Spot ${this.id} cannot accommodate ${vehicle}`);
+    }
+    this.currentVehicle = vehicle;
+  }
+
+  public vacate(): void {
+    this.currentVehicle = null;
+  }
+}
+
+class ParkingFloor {
+  private spots: ParkingSpot[] = [];
+
+  constructor(public readonly floorNumber: number) {}
+
+  public addSpot(spot: ParkingSpot): void {
+    this.spots.push(spot);
+  }
+
+  public getAvailableSpots(): ParkingSpot[] {
+    return this.spots.filter((s) => s.isAvailable());
+  }
+
+  public getSpotById(spotId: string): ParkingSpot | undefined {
+    return this.spots.find((s) => s.id === spotId);
+  }
+}
+
+// ==========================================
+// 3. STRATEGY INTERFACES & IMPLEMENTATIONS
+// ==========================================
+interface SpotAssignmentStrategy {
+  findSpot(floors: ParkingFloor[], vehicle: VehicleType): ParkingSpot | null;
+}
+
+class LowestFloorFirstStrategy implements SpotAssignmentStrategy {
+  findSpot(floors: ParkingFloor[], vehicle: VehicleType): ParkingSpot | null {
+    const sorted = [...floors].sort((a, b) => a.floorNumber - b.floorNumber);
+    for (const floor of sorted) {
+      const match = floor.getAvailableSpots().find((s) => s.canFit(vehicle));
+      if (match) return match;
+    }
+    return null;
+  }
+}
+
 interface PricingStrategy {
-  calculate(ticket: Ticket, exitTime: Date): number;
+  calculateFee(ticket: Ticket, exitTime: Date): number;
 }
 
-class FlatHourlyPricingStrategy implements PricingStrategy {
-  private rates: Record<VehicleType, number> = {
+class HourlyPricingStrategy implements PricingStrategy {
+  private readonly hourlyRates: Record<VehicleType, number> = {
     [VehicleType.BIKE]: 10,
     [VehicleType.CAR]: 20,
     [VehicleType.TRUCK]: 50,
   };
 
-  calculate(ticket: Ticket, exitTime: Date): number {
-    const hours = Math.max(
-      1,
-      Math.ceil((exitTime.getTime() - ticket.entryTime.getTime()) / (1000 * 60 * 60))
-    );
-    return hours * this.rates[ticket.vehicleType];
-  }
-}
-
-// ==========================================
-// 3. DOMAIN ENTITY: PARKING SPOT
-// ==========================================
-
-class ParkingSpot {
-  private occupiedVehicleType: VehicleType | null = null;
-
-  constructor(
-    public readonly id: string,
-    public readonly allowedType: VehicleType
-  ) {}
-
-  public isAvailable(): boolean {
-    return this.occupiedVehicleType === null;
-  }
-
-  public assign(type: VehicleType): void{
-    if (!this.isAvailable()) {
-        console.log(`Parking spot ${this.id} is not availbable.`);
-    }
-
-    if (this.allowedType !== type) {
-        console.log(`Vehicle type is not allowed.`);
-    } 
-    this.occupiedVehicleType = type;
-  }
-
-  public vacate(): void {
-    this.occupiedVehicleType = null;
+  calculateFee(ticket: Ticket, exitTime: Date): number {
+    const diffMs = exitTime.getTime() - ticket.entryTime.getTime();
+    const hours = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60)));
+    return hours * this.hourlyRates[ticket.vehicleType];
   }
 }
 
@@ -86,27 +120,31 @@ class ParkingSpot {
 // 4. ORCHESTRATOR / FACADE: PARKING LOT
 // ==========================================
 class ParkingLot {
-  private spots: ParkingSpot[] = [];
+  private floors: Map<number, ParkingFloor> = new Map();
   private activeTickets: Map<string, Ticket> = new Map();
 
-  constructor(private pricingStrategy: PricingStrategy) {}
+  constructor(
+    private assignmentStrategy: SpotAssignmentStrategy,
+    private pricingStrategy: PricingStrategy
+  ) {}
 
-  public addSpot(spot: ParkingSpot): void {
-    this.spots.push(spot);
+  public addFloor(floor: ParkingFloor): void {
+    this.floors.set(floor.floorNumber, floor);
   }
 
-  public park(type: VehicleType): Ticket {
-    const spot = this.spots.find((s) => s.isAvailable() && s.allowedType === type);
+  public park(vehicle: VehicleType): Ticket {
+    const spot = this.assignmentStrategy.findSpot(Array.from(this.floors.values()), vehicle);
     if (!spot) {
-      throw new Error(`Parking full for vehicle type: ${type}`);
+      throw new Error(`Parking Full: No spot available for ${vehicle}`);
     }
 
-    spot.assign(type);
+    spot.assign(vehicle);
 
     const ticket: Ticket = {
       id: `TCK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       spotId: spot.id,
-      vehicleType: type,
+      floorNumber: spot.floorNumber,
+      vehicleType: vehicle,
       entryTime: new Date(),
     };
 
@@ -114,36 +152,48 @@ class ParkingLot {
     return ticket;
   }
 
-  public unpark(ticketId: string): { fee: number; spotId: string } {
+  public unpark(ticketId: string): Receipt {
     const ticket = this.activeTickets.get(ticketId);
     if (!ticket) {
-      throw new Error(`Ticket not found or already paid: ${ticketId}`);
+      throw new Error(`Invalid or already settled ticket: ${ticketId}`);
     }
 
-    const spot = this.spots.find((s) => s.id === ticket.spotId);
+    const floor = this.floors.get(ticket.floorNumber);
+    const spot = floor?.getSpotById(ticket.spotId);
     if (!spot) {
-      throw new Error(`Corrupted state: Spot ${ticket.spotId} not found.`);
+      throw new Error(`Corrupted state: Spot ${ticket.spotId} not found`);
     }
 
     const exitTime = new Date();
-    const fee = this.pricingStrategy.calculate(ticket, exitTime);
+    const fee = this.pricingStrategy.calculateFee(ticket, exitTime);
+    const durationHours = Math.max(
+      1,
+      Math.ceil((exitTime.getTime() - ticket.entryTime.getTime()) / (1000 * 60 * 60))
+    );
 
     spot.vacate();
     this.activeTickets.delete(ticketId);
 
-    return { fee, spotId: spot.id };
+    return { ticketId: ticket.id, fee, durationHours };
   }
 }
 
 // ==========================================
-// 5. DRIVER RUNNER (Proof of Execution)
+// 5. DRIVER EXECUTION
 // ==========================================
-const lot = new ParkingLot(new FlatHourlyPricingStrategy());
-lot.addSpot(new ParkingSpot('S-1', VehicleType.CAR));
-lot.addSpot(new ParkingSpot('S-2', VehicleType.BIKE));
+const lot = new ParkingLot(new LowestFloorFirstStrategy(), new HourlyPricingStrategy());
 
-const ticket = lot.park(VehicleType.CAR);
-console.log('Vehicle Parked:', ticket);
+const f1 = new ParkingFloor(1);
+f1.addSpot(new ParkingSpot('F1-S1', 1, SpotType.SMALL));
+f1.addSpot(new ParkingSpot('F1-M1', 1, SpotType.MEDIUM));
+lot.addFloor(f1);
 
-const invoice = lot.unpark(ticket.id);
-console.log('Vehicle Unparked:', invoice);
+const f2 = new ParkingFloor(2);
+f2.addSpot(new ParkingSpot('F2-L1', 2, SpotType.LARGE));
+lot.addFloor(f2);
+
+const carTicket = lot.park(VehicleType.CAR);
+console.log('Checked In:', carTicket);
+
+const receipt = lot.unpark(carTicket.id);
+console.log('Checked Out:', receipt);
