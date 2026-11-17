@@ -1,0 +1,122 @@
+
+https://www.linkedin.com/in/jagrit-seth-86685a177
+https://leetcode.com/u/noob1ta/
+https://github.com/jagritv
+
+glance 
+bitgo
+
+Companies which are hiring
+Sharechat (referred)
+Groww  
+Phonepe
+Doordash
+Rippling (applied)
+Salesforce (waiting)
+LinkedIn 
+apollo.io 
+Harness
+stripe
+Paypal
+
+https://jobs.myntra.com/jobs/5459783244?ref=job-share-internal-link
+
+
+Hi,
+
+Hope you're doing well. Thanks for reaching out!
+
+Salesforce has always been one of the companies I've wanted to work with, and I'd love to explore this opportunity.
+
+I have 4.5 years of full-time experience, including building and scaling systems at a 0-to-1 startup and previously working at Samsung Research. I'm also an active LeetCode problem solver with 800+ submissions.
+
+I've attached my resume for your reference. Looking forward to connecting and discussing the opportunity further.
+
+Best regards,
+Jagrit Seth
+
+sql vs nosql
+cap theorem
+process vs thread
+one complex project of yours 
+http vs https
+what are tokens in llm
+why does LLM/AI hallucinate
+guardrails and evals
+what are indexes in database 
+what are b tree index and hash index in db 
+Primary Key vs Foreign Key in SQL
+Tcp vs udp
+what happens when you put a url in browser
+hashmap and concurrent hashmap
+scheduling
+
+Leetcode
+
+1) Leetcode Medium questions. One was on pattern reversing words in string. One was on Ugly numbers
+2) Climbing stairs
+3) longest subsequnces
+4) two strings are given in input how many minimum operations can be done to make them same.
+5) LFU cache/ Design an LRU cache
+
+kotak
+
+DSA
+
+https://leetcode.com/problems/valid-parentheses/
+https://leetcode.com/problems/valid-palindrome/
+Remove Outermost Parentheses
+Valid Pairings
+coin change
+Coin change II
+Largest Rectangle in Histogram.
+Number of Islands
+parking lot 
+
+food delivery system like Zomato 
+Design an E-commerce platform (classes, DB choice, flows)
+design a vehicle booking and loan processing application.
+Design an Airport Scheduler (single runway).
+
+Strategy Pattern
+Singleton Patten
+Factory Pattern
+Decorator Pattern
+
+HLD
+You have 5 auth servers and a load balancer, you need to maintain a single session token for each user as requests can be directed between multiple servers for the same user. How you will do that?
+
+DayProblemCore ArchetypePrimary Patterns & Concepts TestedDay 
+1Parking Lot System (Done)Resource AllocationStrategy, Facade, PolymorphismDay
+2Elevator System (Done)Scheduling & StateLOOK Algorithm, Heuristic Dispatch, StateDay 
+3Vending MachinePure State MachineState Pattern (eliminating if/else spaghetti), Change DispensingDay 
+4Splitwise (Expense Sharing)Financial & LedgersStrategy (Equal/Exact/Percent splits), Graph SimplificationDay 
+5API Rate LimiterInfrastructure & TimeStrategy (Token Bucket, Sliding Window), Concurrency / MutexDay 
+6Pub-Sub / Event Bus (Kafka)Messaging & AsyncObserver Pattern, Topic/Partition routing, Consumer OffsetsDay 
+7BookMyShow (Ticket Booking)Concurrency & LockingOptimistic/Pessimistic Locking, Seat Hold Expiration TimersDay 
+8Multi-Level Cache (LRU/LFU)Data Structures & OOPDoubly Linked List + HashMap, Eviction StrategyDay 
+9Tic-Tac-Toe / Chess EngineTurn-Based EnginesCommand Pattern (Undo/Redo), $O(1)$ Win DetectionDay 
+10Logging Framework / Notification ServiceWorkflows & PipelinesChain of Responsibility, Singleton, Multi-channel Routing
+
+
+how is inheritance performed (by using extends in javascript)
+method overloading and overriding
+
+How is encapsulation performed ? (using private, e.g hiding bank balance in an account class)
+How is abstraction performed ? using interface/ abstract class ? Focuses on exposing essential functionality and hiding complexity
+
+
+S - single responsibility - one class/ function should handle one responsibility
+O - open/closed - open for extension, closed for modification.
+L - liskov substitution - an object of a child class should be able to replace an object of its parent class without breaking.(e.g penguin class cannot implement bird interface, it should be flyable and non flyable)
+I - Interface segrgateion - a class should not be forced to implement methods it does not need. (e.g. readable/writable storage)
+D - Dependency Inversion - High level modules should not directly depend on low level module. for e.g. notification service should not directly depend on email sender.
+
+TODO
+
+Salesforce test (done)
+Amazon test (done)
+Kotak Test (done)
+Check on Keystone 
+Talk to Deep (done)
+check with Neha HR (done)
